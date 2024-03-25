@@ -2,9 +2,13 @@ import openpyxl
 from openpyxl.drawing.image import Image  # Importa Image para añadir imágenes a los archivos Excel
 import os
 import pandas as pd
+import tkinter as tk
+from tkinter import ttk
 
+CONTRATO=1780
+ORDEN_CONTRACTUAL="CMM-2023-000136"
 
-def crear_lista_de_chequeo(rutaPlantilla, rutaDestino, cliente, comercial, pdseries):
+def crear_lista_de_chequeo(rutaPlantilla, rutaScript, cliente, comercial, pdseries):
     
     wb_LC = openpyxl.load_workbook(rutaPlantilla)  # Loads the Excel workbook.
     sheet= wb_LC.worksheets[0]
@@ -126,38 +130,60 @@ def crear_lista_de_chequeo(rutaPlantilla, rutaDestino, cliente, comercial, pdser
     celda_revisado=sheet["E53:M53"]
     celda_revisado[0][0].value= pdseries.iloc[49]
 
-    img = Image(os.path.join(script_directory, 'encabezado.png'))
+    img = Image(os.path.join(rutaScript, 'encabezado.png'))
     sheet.add_image(img, 'C3')
 
     consecutivo=str(pdseries.iloc[1])
     nombrearchivo=consecutivo+'.xlsx'
     sheet.title=consecutivo
-    archivo=os.path.join(rutaDestino,'LC',nombrearchivo)
+    archivo=os.path.join(rutaScript,'LC',nombrearchivo)
     wb_LC.save(archivo)
 
+def main():
+    
+    
+    comercial='LUIS CAÑÒN'
+    cliente='Universidad Nacional Abierta y a Distancia (UNAD)'
 
-CONTRATO=1780
-ORDEN_CONTRACTUAL="CMM-2023-000136"
-comercial='LUIS CAÑÒN'
-cliente='Universidad Nacional Abierta y a Distancia (UNAD)'
+    # Nombre del archivo de la plantilla de Excel para la lista de chequeo.
+    plantilla='106.xlsx'
+    baseDeDatosParaRevisionDeListas='baseDeDatosParaRevisionDeListas.xlsx'
+    script_actual = os.path.realpath(__file__)  # Obtiene la ruta absoluta del script en ejecución
+    script_directory = os.path.dirname(script_actual)  # Obtiene el directorio donde se encuentra el script
 
-# Nombre del archivo de la plantilla de Excel para la lista de chequeo.
-plantilla='106.xlsx'
-baseDeDatosParaRevisionDeListas='baseDeDatosParaRevisionDeListas.xlsx'
-script_actual = os.path.realpath(__file__)  # Obtiene la ruta absoluta del script en ejecución
-script_directory = os.path.dirname(script_actual)  # Obtiene el directorio donde se encuentra el script
-
-ruta_plantilla=os.path.join(script_directory,plantilla)
-ruta_basedatos=os.path.join(script_directory,baseDeDatosParaRevisionDeListas)
+    ruta_plantilla=os.path.join(script_directory,plantilla)
+    ruta_basedatos=os.path.join(script_directory,baseDeDatosParaRevisionDeListas)
 
 
-# Lee los datos desde un archivo Excel específico, usándolos como base para rellenar la plantilla.
-# El primer argumento es la ruta del archivo y el segundo argumento establece la primera columna como índice o etiqueta.
-df = pd.read_excel(ruta_basedatos)
+    # Lee los datos desde un archivo Excel específico, usándolos como base para rellenar la plantilla.
+    # El primer argumento es la ruta del archivo y el segundo argumento establece la primera columna como índice o etiqueta.
+    df = pd.read_excel(ruta_basedatos)
 
-for indice, fila in df.iterrows():
-    crear_lista_de_chequeo(ruta_plantilla,script_directory,cliente,comercial,fila)
+    for indice, fila in df.iterrows():
+        crear_lista_de_chequeo(ruta_plantilla,script_directory,cliente,comercial,fila)
 
+    return len(os.listdir(os.path.join(script_directory,'LC')))
+
+if __name__ == '__main__':  
+    root = tk.Tk()
+    root.title("Crear Listas de Chequeo")
+
+    root.configure(bg='darkblue')
+    root.grid_rowconfigure(1, weight=1)
+    root.grid_columnconfigure(1, weight=1)
+
+
+
+    button = ttk.Button(root, text="CREAR LISTAS DE CHEQUEO", command=main)
+    button.grid(row=2, column=0, padx=100, pady=(10, 10))
+
+    style = ttk.Style()
+    style.theme_use('alt')
+    style.configure('TButton', background='#548', foreground='white', font=('Calibri Bold', 12))
+
+
+    # Start the application
+    root.mainloop()
 
 
 
